@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Красная Кнопка: Не Нажимай!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&family=Comic+Sans+MS&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --red-glow: 0 0 40px rgba(255, 0, 0, 0.8), 0 0 80px rgba(255, 0, 0, 0.4);
+      --glitch-color: rgba(255, 0, 0, 0.5);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Exo 2', sans-serif;
+      min-height: 100vh;
+      overflow: hidden;
+      background: linear-gradient(135deg, #1a202c, #2d3748);
+      transition: all 0.5s ease;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #button {
+      transition: transform 0.2s ease, filter 0.3s, background-color 0.3s;
+      position: relative;
+      z-index: 10;
+      cursor: pointer;
+      outline: none;
+    }
+
+    #button:hover:not(.disabled) {
+      transform: scale(1.1);
+      filter: var(--red-glow);
+    }
+
+    #button.disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    #dialog {
+      text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+      user-select: none;
+    }
+
+    .vibrate {
+      animation: vibrate 0.1s infinite;
+    }
+
+    .glitch {
+      animation: glitch 0.15s infinite;
+      position: relative;
+    }
+
+    .glitch::before,
+    .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .glitch::before {
+      color: var(--glitch-color);
+      animation: glitch-top 0.3s infinite;
+      left: -2px;
+    }
+
+    .glitch::after {
+      color: cyan;
+      animation: glitch-bottom 0.3s infinite;
+      left: 2px;
+    }
+
+    .blink {
+      animation: blink 0.5s infinite;
+    }
+
+    .blood {
+      background: linear-gradient(rgba(255, 0, 0, 0.8), rgba(0, 0, 0, 0.8)) !important;
+    }
+
+    .ascii {
+      font-family: 'Courier New', monospace;
+      background: black !important;
+      color: green;
+      font-size: 14px;
+    }
+
+    .comic-sans {
+      font-family: 'Comic Sans MS', cursive !important;
+    }
+
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(255, 0, 0, 0.95);
+      color: white;
+      padding: 15px 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+      z-index: 1001;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideIn 0.5s forwards, fadeOut 6s 4s forwards;
+      max-width: 90vw;
+      word-break: break-word;
+      font-size: clamp(14px, 2vw, 16px);
+    }
+
+    .runaway {
+      animation: runaway 5s linear;
+    }
+
+    .mirror {
+      transform: scaleX(-1);
+    }
+
+    .psychedelic {
+      animation: psychedelic 2s linear infinite;
+    }
+
+    .tetris {
+      background: url('src/src/img/tetris-bg.png') no-repeat center !important;
+      background-size: cover !important;
+    }
+
+    .bsod {
+      background: #0000ff;
+      color: white;
+      font-family: 'Courier New', monospace;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 9999;
+    }
+
+    .glitch-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('src/src/img/glitch-bg.png') repeat;
+      opacity: 0.4;
+      z-index: 9998;
+      animation: glitch 0.2s infinite;
+    }
+
+    @keyframes vibrate {
+      0%, 100% { transform: translate(0); }
+      20% { transform: translate(-3px, 3px); }
+      40% { transform: translate(3px, -3px); }
+      60% { transform: translate(-3px, -3px); }
+      80% { transform: translate(3px, 3px); }
+    }
+
+    @keyframes glitch {
+      0%, 100% { transform: translate(0); }
+      20% { transform: translate(-5px, 5px); }
+      40% { transform: translate(5px, -5px); }
+      60% { transform: translate(-5px, -5px); }
+      80% { transform: translate(5px, 5px); }
+    }
+
+    @keyframes glitch-top {
+      0%, 100% { clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%); }
+      50% { clip-path: polygon(0 10%, 100% 10%, 100% 43%, 0 43%); }
+    }
+
+    @keyframes glitch-bottom {
+      0%, 100% { clip-path: polygon(0 66%, 100% 66%, 100% 100%, 0 100%); }
+      50% { clip-path: polygon(0 56%, 100% 56%, 100% 90%, 0 90%); }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    @keyframes slideIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateY(20px); }
+    }
+
+    @keyframes runaway {
+      0% { transform: translate(0, 0); }
+      25% { transform: translate(200px, -200px); }
+      50% { transform: translate(-200px, 200px); }
+      75% { transform: translate(200px, 200px); }
+      100% { transform: translate(0, 0); }
+    }
+
+    @keyframes psychedelic {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div id="main" class="text-center px-4 relative z-10" role="main">
+    <h1 id="dialog" class="text-2xl sm:text-3xl md:text-5xl font-bold mb-10 text-red-500 animate-pulse" data-text="Пожалуйста, не нажимай на меня..." aria-live="polite">Пожалуйста, не нажимай на меня...</h1>
+    <button id="button" class="bg-red-600 text-white font-bold text-lg sm:text-2xl py-4 px-8 rounded-full shadow-2xl hover:bg-red-700" aria-label="Красная кнопка, не нажимать">
+      КРАСНАЯ КНОПКА
+    </button>
+    <div id="bsod" class="bsod hidden" role="alert">
+      <div class="text-center">
+        <h1>:(</h1>
+        <p>Ваш ПК столкнулся с проблемой и будет уничтожен.</p>
+        <p id="countdown">Осталось: 30 секунд</p>
+        <button id="apologize" class="bg-white text-blue-900 px-4 py-2 rounded" aria-label="Извиниться перед кнопкой">Извиниться</button>
+      </div>
+    </div>
+    <div id="tetris-game" class="hidden absolute top-0 left-0 w-full h-full bg-black bg-opacity-80 flex items-center justify-center" role="dialog">
+      <p class="text-3xl text-white">Тетрис активирован!</p>
+    </div>
+    <div id="chat" class="hidden fixed bottom-10 left-10 bg-gray-800 p-4 rounded-lg shadow-lg z-20 max-w-xs" role="log">
+      <p><strong>Билл Гейтс:</strong> Зачем ты нажал? Теперь переустанавливай Windows!</p>
+    </div>
+    <canvas id="doom-canvas" class="hidden fixed top-0 left-0 w-full h-full z-9998" aria-hidden="true"></canvas>
+  </div>
+
+  <script type="module">
+    // Модуль управления cookies
+    const CookieManager = {
+      setCookie(name, value, hours) {
+        const expires = new Date(Date.now() + hours * 3600000).toUTCString();
+        document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires};path=/;SameSite=Strict;Secure`;
+      },
+      getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        return parts.length === 2 ? decodeURIComponent(parts.pop().split(';')[0]) : null;
+      },
+      deleteCookie(name) {
+        this.setCookie(name, '', -1);
+      }
+    };
+
+    // Модуль управления звуком
+    const SoundManager = {
+      sounds: {
+        scream: new Audio('src/src/audio/scream.mp3'),
+        doom: new Audio('src/src/audio/doom.mp3'),
+        ussr: new Audio('src/src/audio/ussr-anthem.mp3'),
+        error: new Audio('src/src/audio/error.mp3'),
+        animal: new Audio('src/src/audio/animal.mp3'),
+        shanson: new Audio('src/src/audio/shanson.mp3'),
+        reload: new Audio('src/src/audio/reload.mp3'),
+        death: new Audio('src/src/audio/death.mp3'),
+        fail: new Audio('src/src/audio/fail.mp3'),
+        ban: new Audio('src/src/audio/ban.mp3')
+      },
+      play(sound) {
+        const audio = this.sounds[sound];
+        if (audio) {
+          audio.currentTime = 0;
+          audio.play().catch(() => console.warn(`Не удалось воспроизвести ${sound}`));
+        }
+      },
+      stopAll() {
+        Object.values(this.sounds).forEach(audio => {
+          audio.pause();
+          audio.currentTime = 0;
+        });
+      }
+    };
+
+    // Модуль уведомлений
+    const NotificationManager = {
+      show(message) {
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.textContent = message;
+        notification.setAttribute('role', 'alert');
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 6000);
+      }
+    };
+
+    // Модуль диалогов
+    const DialogManager = {
+      dialogs: [
+        'Пожалуйста, не нажимай на меня...',
+        'Ты серьёзно хочешь это сделать?',
+        'Это может вызвать апокалипсис!',
+        'Я просто кнопка, но с душой!',
+        'Ты вызовешь цифровой хаос!',
+        'Остановись, пока не поздно!',
+        'Ты хочешь сломать интернет?',
+        'Я умоляю, не трогай меня!',
+        'Это кнопка Судного дня!',
+        'Ты хочешь, чтобы я заплакала?',
+        'Ты вызовешь межгалактический баг!',
+        'Я не готова к твоему любопытству!',
+        'Ты хочешь увидеть 404 СОВЕСТЬ NOT FOUND?',
+        'Не нажимай, я в режиме отладки!',
+        'Ты вызовешь сбой в матрице!',
+        'Я могу устроить тебе вечный редирект!',
+        'Не трогай, я только что задеплоилась!',
+        'Ты хочешь, чтобы я крашнулась?',
+        'Я могу превратить твой экран в пиксельный ад!',
+        'Не нажимай, я ещё не закешировалась!',
+        'Ты вызовешь цифровой армагеддон!',
+        'Я могу удалить твой localStorage!',
+        'Не трогай, я в режиме стресс-теста!',
+        'Ты хочешь увидеть настоящий баг?',
+        'Я могу устроить тебе DDoS... в шутку!',
+        'Не нажимай, я только что обновилась!',
+        'Ты вызовешь бесконечный цикл!',
+        'Я могу заблокировать твой CSS!',
+        'Не трогай, я в режиме инкогнито!',
+        'Ты хочешь, чтобы я зависла?',
+        'Я могу сделать твой экран чёрным!',
+        'Не нажимай, я ещё не отрендерилась!',
+        'Ты вызовешь цифровой катаклизм!',
+        'Я могу превратить твой браузер в хаос!',
+        'Не трогай, я в режиме тестирования!',
+        'Ты хочешь увидеть настоящий краш?',
+        'Я могу устроить тебе вечный спиннер!',
+        'Не нажимай, я ещё не заминифицировалась!',
+        'Ты вызовешь сбой в моём API!',
+        'Я могу превратить твой JS в спагетти-код!',
+        'Не трогай, я только что закоммитилась!',
+        'Ты хочешь, чтобы я вызвала 500-ю ошибку?',
+        'Я могу устроить тебе цифровой кошмар!',
+        'Не нажимай, я в режиме профилирования!',
+        'Ты вызовешь сбой в моём фреймворке!',
+        'Я могу заблокировать твой DOM навсегда!',
+        'Не трогай, я в режиме миграции!',
+        'Ты хочешь увидеть настоящий exception?',
+        'Я могу сделать твой экран перевёрнутым!',
+        'Не нажимай, я ещё не закешировала шрифты!',
+        'Ты вызовешь полный цифровой коллапс!',
+        'Я могу удалить твой sessionStorage!',
+        'Не трогай, я только что прошла аудит безопасности!',
+        'Ты хочешь, чтобы я вызвала фаталку?',
+        'Я могу устроить тебе вечный баг!',
+        'Не нажимай, я в режиме финального релиза!',
+        'Ты вызовешь цифровой конец света!',
+        'Я могу превратить твой браузер в пиксельный кошмар!',
+        'Не трогай, я в режиме продакшена!',
+        'Ты хочешь увидеть настоящий цифровой ужас?',
+        'Я могу заблокировать твой фронтенд!',
+        'Не нажимай, я только что заоптимизировалась!',
+        'Ты вызовешь сбой в моём ядре!',
+        'Я могу превратить твой CSS в хаос!',
+        'Не трогай, я в режиме рефакторинга!',
+        'Ты хочешь, чтобы я зависла в рендеринге?',
+        'Я могу устроить тебе вечный редизайн!',
+        'Не нажимай, я ещё не прогрузилась!',
+        'Ты вызовешь цифровой шторм!',
+        'Я могу удалить твой CSS навсегда!',
+        'Не трогай, я в режиме сна!',
+        'Ты хочешь, чтобы я вызвала панику?',
+        'Я могу сделать твой экран чёрно-белым!',
+        'Не нажимай, я только что ребутнулась!',
+        'Ты вызовешь сбой в моём роутере!',
+        'Я могу превратить твой код в хаос!',
+        'Не трогай, я в режиме дебаггинга!',
+        'Ты вызовешь цифровой хаос!',
+        'Я могу заблокировать твои шрифты!',
+        'Не нажимай, я ещё не прошла QA!',
+        'Ты хочешь увидеть настоящий баг?',
+        'Я могу устроить тебе утечку памяти!',
+        'Не трогай, я только что получила патч!',
+        'Ты вызовешь цифровую чуму!',
+        'Я могу превратить твой HTML в кашу!',
+        'Не нажимай, я ещё не отладила код!',
+        'Ты хочешь, чтобы я вызвала CORS-ошибку?',
+        'Я могу сделать твой экран пиксельным кошмаром!',
+        'Не трогай, я только что прошла CI/CD!',
+        'Ты вызовешь сбой в моём JS!',
+        'Я могу устроить тебе вечный рефреш!',
+        'Не нажимай, я в бета-версии!',
+        'Ты хочешь, чтобы я удалила кэш?',
+        'Я могу превратить твой экран в пиксельный ад!',
+        'Не трогай, я только что обновилась!',
+        'Ты вызовешь перегрузку сервера... в моём сердце!',
+        'Я могу устроить тебе тёмную тему навсегда!',
+        'Не нажимай, я ещё не готова к славе!',
+        'Ты вызовешь межгалактический инцидент!',
+        'Я не хочу быть героем этой истории!',
+        'Ты хочешь, чтобы мир сошёл с ума?',
+        'Я предупреждаю: это плохая идея!',
+        'Не заставляй меня звать админа!',
+        'Ты хочешь, чтобы я исчезла?',
+        'Я всего лишь пиксели, но мне страшно!',
+        'Не нажимай, я ещё не готова к этому!',
+        'Ты хочешь стать причиной катастрофы?',
+        'Я знаю, ты любопытный, но не надо!',
+        'Это кнопка, но с чувствами, не трогай!',
+        'Ты вызовешь цифровой апокалипсис!',
+        'Нажмёшь — и всё пропало!',
+        'Я не шучу, будет хаос!',
+        'Ты хочешь разрушить интернет?',
+        'Остановись, пока не поздно!',
+        'Моя жизнь зависит от тебя, не нажимай!',
+        'Ты вызовешь что-то ужасное!',
+        'Не трогай меня, я всего лишь кнопка!',
+        'Это может быть опасно, я предупреждаю!',
+        'Ты точно хочешь нажать? Подумай ещё раз!',
+        'Я серьёзно, не надо этого делать!',
+        'ТЫ ДОЖАЛСЯ! ЭТО ПИЗДЕЦ!'
+      ],
+      index: 0,
+      element: document.getElementById('dialog'),
+      update() {
+        this.element.textContent = this.dialogs[this.index];
+        this.element.setAttribute('data-text', this.dialogs[this.index]);
+        this.index = (this.index + 1) % this.dialogs.length;
+      },
+      set(text) {
+        this.element.textContent = text;
+        this.element.setAttribute('data-text', text);
+      }
+    };
+
+    // Модуль приколов
+    const PrankManager = {
+      cssBreakActive: false,
+      originalStyles: null,
+      nextPrank: null,
+      pranks: [
+        {
+          id: 'vibrate',
+          threat: 'Я могу заставить твой экран дрожать!',
+          dialog: 'ЭКРАН ТРЯСЁТСЯ! ОСТАНОВИСЬ!',
+          image: 'src/src/img/vibrate-bg.png',
+          sound: 'error',
+          execute: function() {
+            document.body.classList.add('vibrate');
+            NotificationManager.show('Экран трясётся от твоего безумия!');
+            setTimeout(() => document.body.classList.remove('vibrate'), 2000);
+          }
+        },
+        {
+          id: 'bsod',
+          threat: 'Я могу вызвать синий экран смерти!',
+          dialog: 'СИНИЙ ЭКРАН СМЕРТИ! ТЫ ВСЁ СЛОМАЛ!',
+          image: 'src/src/img/bsod-bg.png',
+          sound: 'death',
+          execute: function() {
+            const bsod = document.getElementById('bsod');
+            bsod.classList.remove('hidden');
+            let timeLeft = 30;
+            const countdown = document.getElementById('countdown');
+            countdown.textContent = `Осталось: ${timeLeft} секунд`;
+            NotificationManager.show('Ты вызвал синий экран смерти!');
+            const timer = setInterval(() => {
+              timeLeft--;
+              countdown.textContent = `Осталось: ${timeLeft} секунд`;
+              if (timeLeft <= 0) {
+                clearInterval(timer);
+                bsod.classList.add('hidden');
+                NotificationManager.show('Фух, пронесло... или нет?');
+              }
+            }, 1000);
+            document.getElementById('apologize').onclick = () => {
+              clearInterval(timer);
+              bsod.classList.add('hidden');
+              NotificationManager.show('Ладно, извинения приняты... на этот раз!');
+            };
+          }
+        },
+        {
+          id: 'screamer',
+          threat: 'Я могу напугать тебя скримером!',
+          dialog: 'ТЫ ВЫЗВАЛ СКРИМЕР! ААА!',
+          image: 'src/src/img/screamer.png',
+          sound: 'scream',
+          execute: function() {
+            const screamer = document.createElement('img');
+            screamer.src = 'src/src/img/screamer.png';
+            screamer.style.position = 'fixed';
+            screamer.style.top = '0';
+            screamer.style.left = '0';
+            screamer.style.width = '100%';
+            screamer.style.height = '100%';
+            screamer.style.zIndex = '9999';
+            screamer.onerror = () => console.error('Не удалось загрузить src/src/img/screamer.png');
+            document.body.appendChild(screamer);
+            NotificationManager.show('Скример! Не пугайся!');
+            setTimeout(() => screamer.remove(), 1000);
+          }
+        },
+        {
+          id: 'css-break',
+          threat: 'Я могу разрушить весь дизайн сайта!',
+          dialog: 'ТЫ СЛОМАЛ ДИЗАЙН САЙТА! ВСЁ В ХАОСЕ!',
+          image: 'src/src/img/broken-bg.png',
+          sound: 'fail',
+          execute: function() {
+            // Сохраняем исходные стили
+            this.originalStyles = {
+              body: document.body.getAttribute('style') || '',
+              main: document.getElementById('main').getAttribute('style') || '',
+              dialog: document.getElementById('dialog').getAttribute('style') || '',
+              dialogClass: document.getElementById('dialog').className,
+              button: document.getElementById('button').getAttribute('style') || '',
+              buttonClass: document.getElementById('button').className
+            };
+
+            // Применяем хаотичные стили
+            document.body.style.background = `linear-gradient(${Math.random() * 360}deg, #${Math.floor(Math.random() * 16777215).toString(16)}, #${Math.floor(Math.random() * 16777215).toString(16)})`;
+            document.body.style.fontFamily = Math.random() < 0.5 ? 'Comic Sans MS' : 'Impact';
+            document.body.style.transform = `rotate(${Math.random() * 10 - 5}deg)`;
+            document.getElementById('main').style.padding = `${Math.random() * 50}px`;
+            document.getElementById('main').style.transform = `skew(${Math.random() * 20 - 10}deg)`;
+            document.getElementById('dialog').className = 'text-xl font-normal mb-5 text-purple-500';
+            document.getElementById('dialog').style.textShadow = 'none';
+            document.getElementById('dialog').style.fontSize = `${Math.random() * 20 + 20}px`;
+            document.getElementById('button').className = 'bg-yellow-500 text-black font-normal text-sm py-2 px-4 rounded';
+            document.getElementById('button').style.boxShadow = 'none';
+            document.getElementById('button').style.transform = `translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px)`;
+
+            NotificationManager.show('Дизайн сайта сломан! Подожди 5 секунд для восстановления!');
+            this.cssBreakActive = true;
+
+            // Восстановление через 5 секунд
+            setTimeout(() => {
+              document.body.setAttribute('style', this.originalStyles.body);
+              document.getElementById('main').setAttribute('style', this.originalStyles.main);
+              document.getElementById('dialog').setAttribute('style', this.originalStyles.dialog);
+              document.getElementById('dialog').className = this.originalStyles.dialogClass;
+              document.getElementById('button').setAttribute('style', this.originalStyles.button);
+              document.getElementById('button').className = this.originalStyles.buttonClass;
+              NotificationManager.show('Дизайн восстановлен!');
+              DialogManager.update();
+              this.cssBreakActive = false;
+            }, 5000);
+          }
+        },
+        {
+          id: 'runaway',
+          threat: 'Я могу убежать от тебя!',
+          dialog: 'Я УБЕГАЮ! НЕ ЛОВИ МЕНЯ!',
+          image: 'src/src/img/runaway-bg.png',
+          sound: 'error',
+          execute: function() {
+            const button = document.getElementById('button');
+            button.classList.add('runaway');
+            NotificationManager.show('Кнопка убегает от тебя!');
+            setTimeout(() => button.classList.remove('runaway'), 5000);
+          }
+        },
+        {
+          id: 'psychedelic',
+          threat: 'Я могу устроить психоделический взрыв!',
+          dialog: 'КРАСКИ ВЗОРВАЛИСЬ! ТЫ В ПСИХОДЕЛЕ!',
+          image: 'src/src/img/psychedelic-bg.png',
+          sound: 'shanson',
+          execute: function() {
+            document.body.classList.add('psychedelic');
+            NotificationManager.show('Психоделический взрыв красок!');
+            setTimeout(() => document.body.classList.remove('psychedelic'), 5000);
+          }
+        },
+        {
+          id: 'tetris',
+          threat: 'Я могу превратить всё в Тетрис!',
+          dialog: 'ТЕТРИС АКТИВИРОВАН! ИГРА НАЧАЛАСЬ!',
+          image: 'src/src/img/tetris-bg.png',
+          sound: 'reload',
+          execute: function() {
+            document.body.classList.add('tetris');
+            const tetris = document.getElementById('tetris-game');
+            tetris.classList.remove('hidden');
+            NotificationManager.show('Вся игра теперь Тетрис!');
+            setTimeout(() => {
+              document.body.classList.remove('tetris');
+              tetris.classList.add('hidden');
+            }, 5000);
+          }
+        },
+        {
+          id: 'doom',
+          threat: 'Я могу запустить DOOM на твоём экране!',
+          dialog: 'DOOM АКТИВИРОВАН! БЕРЕГИСЬ ДЕМОНОВ!',
+          image: 'src/src/img/doom-bg.png',
+          sound: 'doom',
+          execute: function() {
+            const canvas = document.getElementById('doom-canvas');
+            canvas.classList.remove('hidden');
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'red';
+            ctx.font = '30px Arial';
+            ctx.fillText('DOOM АКТИВИРОВАН!', 50, 100);
+            NotificationManager.show('DOOM запущен! Берегись демонов!');
+            setTimeout(() => canvas.classList.add('hidden'), 5000);
+          }
+        },
+        {
+          id: 'gopnik',
+          threat: 'Я могу вызвать танцующего гопника!',
+          dialog: 'ГОПНИК ТАНЦУЕТ! ЧТО ТЫ НАТВОРИЛ?!',
+          image: 'src/src/img/gopnik.gif',
+          sound: 'shanson',
+          execute: function() {
+            const gopnik = document.createElement('img');
+            gopnik.src = 'src/src/img/gopnik.gif';
+            gopnik.style.position = 'fixed';
+            gopnik.style.bottom = '10px';
+            gopnik.style.left = '10px';
+            gopnik.style.width = '200px';
+            gopnik.onerror = () => console.error('Не удалось загрузить src/src/img/gopnik.gif');
+            document.body.appendChild(gopnik);
+            NotificationManager.show('Гопник танцует от твоих действий!');
+            setTimeout(() => gopnik.remove(), 5000);
+          }
+        },
+        {
+          id: 'green-button',
+          threat: 'Я могу стать зелёной и запутать тебя!',
+          dialog: 'КНОПКА ЗЕЛЁНАЯ! ТЕПЕРЬ ПОЗДНО!',
+          image: 'src/src/img/green-bg.png',
+          sound: 'error',
+          execute: function() {
+            const button = document.getElementById('button');
+            button.classList.remove('bg-red-600', 'hover:bg-red-700');
+            button.classList.add('bg-green-600', 'hover:bg-green-700');
+            button.textContent = 'Теперь уже поздно';
+            NotificationManager.show('Слишком поздно, чтобы исправить!');
+            setTimeout(() => {
+              button.classList.add('bg-red-600', 'hover:bg-red-700');
+              button.classList.remove('bg-green-600', 'hover:bg-green-700');
+              button.textContent = 'КРАСНАЯ КНОПКА';
+            }, 3000);
+          }
+        },
+        {
+          id: 'nuclear',
+          threat: 'Я могу устроить ядерный взрыв!',
+          dialog: 'ЯДЕРНЫЙ ВЗРЫВ! ТЫ ВСЁ УНИЧТОЖИЛ!',
+          image: 'src/src/img/nuclear.png',
+          sound: 'death',
+          execute: function() {
+            const mushroom = document.createElement('img');
+            mushroom.src = 'src/src/img/nuclear.png';
+            mushroom.style.position = 'fixed';
+            mushroom.style.top = '0';
+            mushroom.style.left = '0';
+            mushroom.style.width = '100%';
+            mushroom.style.height = '100%';
+            mushroom.style.opacity = '0.5';
+            mushroom.onerror = () => console.error('Не удалось загрузить src/src/img/nuclear.png');
+            document.body.appendChild(mushroom);
+            NotificationManager.show('Ядерный взрыв! Ты всё уничтожил!');
+            setTimeout(() => mushroom.remove(), 5000);
+          }
+        },
+        {
+          id: 'meme',
+          threat: 'Я могу показать тебе случайный мем!',
+          dialog: 'СЛУЧАЙНЫЙ МЕМ! НАСЛАЖДАЙСЯ!',
+          image: 'src/src/img/meme.jpg',
+          sound: 'reload',
+          execute: function() {
+            const meme = document.createElement('img');
+            meme.src = 'src/src/img/meme.jpg';
+            meme.style.position = 'fixed';
+            meme.style.top = '10%';
+            meme.style.left = '10%';
+            meme.style.width = '300px';
+            meme.onerror = () => console.error('Не удалось загрузить src/src/img/meme.jpg');
+            document.body.appendChild(meme);
+            NotificationManager.show('Мем для твоего настроения!');
+            setTimeout(() => meme.remove(), 5000);
+          }
+        },
+        {
+          id: 'blood',
+          threat: 'Я могу залить экран кровью!',
+          dialog: 'КРОВЬ НА ЭКРАНЕ! ЧТО ТЫ НАТВОРИЛ?',
+          image: 'src/src/img/blood-bg.png',
+          sound: 'death',
+          execute: function() {
+            document.body.classList.add('blood');
+            NotificationManager.show('Кровь на экране! Что ты натворил?');
+            setTimeout(() => document.body.classList.remove('blood'), 3000);
+          }
+        },
+        {
+          id: 'ascii',
+          threat: 'Я могу вернуть тебя в эпоху ASCII!',
+          dialog: '....:::: ASCII MODE ::::....',
+          image: 'src/src/img/ascii-bg.png',
+          sound: 'error',
+          execute: function() {
+            document.body.classList.add('ascii');
+            NotificationManager.show('Добро пожаловать в 80-е!');
+            setTimeout(() => document.body.classList.remove('ascii'), 5000);
+          }
+        },
+        {
+          id: 'comic-sans',
+          threat: 'Я могу атаковать Comic Sans!',
+          dialog: 'COMIC SANS АТАКУЕТ! СПАСАЙСЯ!',
+          image: 'src/src/img/comic-bg.png',
+          sound: 'error',
+          execute: function() {
+            document.body.classList.add('comic-sans');
+            NotificationManager.show('Comic Sans атакует!');
+            setTimeout(() => document.body.classList.remove('comic-sans'), 5000);
+          }
+        },
+        {
+          id: 'mirror',
+          threat: 'Я могу отзеркалить твой экран!',
+          dialog: 'ТЫ НЕ ОТРАЖАЕШЬСЯ В ЗЕРКАЛЕ!',
+          image: 'src/src/img/mirror-bg.png',
+          sound: 'error',
+          execute: function() {
+            document.body.classList.add('mirror');
+            NotificationManager.show('Ты не отражаешься в зеркале!');
+            setTimeout(() => document.body.classList.remove('mirror'), 5000);
+          }
+        },
+        {
+          id: 'cheburashka',
+          threat: 'Я могу превратиться в Чебурашку!',
+          dialog: 'КНОПКА СТАЛА ЧЕБУРАШКОЙ!',
+          image: 'src/src/img/cheburashka.png',
+          sound: 'animal',
+          execute: function() {
+            const button = document.getElementById('button');
+            button.textContent = 'ЧЕБУРАШКА';
+            button.style.backgroundImage = 'url(src/src/img/cheburashka.png)';
+            button.style.backgroundSize = 'cover';
+            NotificationManager.show('Кнопка стала Чебурашкой!');
+            setTimeout(() => {
+              button.textContent = 'КРАСНАЯ КНОПКА';
+              button.style.backgroundImage = '';
+              button.style.backgroundSize = '';
+            }, 5000);
+          }
+        },
+        {
+          id: 'rickroll',
+          threat: 'Я могу зарикроллить тебя!',
+          dialog: 'ТЫ ПОПАЛСЯ НА РИКРОЛЛ!',
+          image: 'src/src/img/rickroll-bg.png',
+          sound: 'shanson',
+          execute: function() {
+            window.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ', '_blank');
+            NotificationManager.show('Ты попался на рикролл!');
+          }
+        },
+        {
+          id: 'matrix',
+          threat: 'Я могу отправить тебя в Матрицу!',
+          dialog: 'ТЕПЕРЬ ТЫ В МАТРИЦЕ!',
+          image: 'src/src/img/matrix-bg.png',
+          sound: 'error',
+          execute: function() {
+            document.body.style.background = 'url(src/src/img/matrix-bg.png)';
+            NotificationManager.show('Теперь ты в Матрице!');
+            setTimeout(() => document.body.style.background = '', 5000);
+          }
+        },
+        {
+          id: 'windows95',
+          threat: 'Я могу вернуть тебя в Windows 95!',
+          dialog: 'ДОБРО ПОЖАЛОВАТЬ В WINDOWS 95!',
+          image: 'src/src/img/win95.jpg',
+          sound: 'error',
+          execute: function() {
+            document.body.style.background = 'url(src/src/img/win95.jpg)';
+            NotificationManager.show('Добро пожаловать в Windows 95!');
+            setTimeout(() => document.body.style.background = '', 5000);
+          }
+        },
+        {
+          id: 'starwars',
+          threat: 'Я могу начать Звёздные войны!',
+          dialog: 'ЗВЁЗДНЫЕ ВОЙНЫ НАЧАЛИСЬ!',
+          image: 'src/src/img/starwars-bg.png',
+          sound: 'doom',
+          execute: function() {
+            const crawl = document.createElement('div');
+            crawl.style.position = 'fixed';
+            crawl.style.top = '0';
+            crawl.style.left = '0';
+            crawl.style.width = '100%';
+            crawl.style.height = '100%';
+            crawl.style.background = 'black';
+            crawl.style.color = 'yellow';
+            crawl.style.fontSize = '24px';
+            crawl.style.textAlign = 'center';
+            crawl.style.transform = 'perspective(500px) rotateX(25deg)';
+            crawl.style.animation = 'crawl 10s linear';
+            crawl.innerHTML = '<p>Это конец...</p><p>Ты нажал на кнопку...</p><p>Мир обречён...</p>';
+            document.body.appendChild(crawl);
+            NotificationManager.show('Звёздные войны начались!');
+            setTimeout(() => crawl.remove(), 10000);
+          }
+        }
+      ],
+      setNextPrank() {
+        this.nextPrank = this.pranks[Math.floor(Math.random() * this.pranks.length)];
+        DialogManager.set(this.nextPrank.threat);
+      },
+      executeNextPrank() {
+        if (!this.nextPrank) return;
+        DialogManager.set(this.nextPrank.dialog);
+        document.body.style.backgroundImage = `url(${this.nextPrank.image})`;
+        SoundManager.play(this.nextPrank.sound);
+        this.nextPrank.execute();
+        setTimeout(() => {
+          if (!this.cssBreakActive) {
+            document.body.style.backgroundImage = '';
+          }
+          this.nextPrank = null;
+          DialogManager.update();
+        }, 5000);
+      }
+    };
+
+    // Модуль бана
+    const BanManager = {
+      BAN_DURATION: 3600000, // 1 час
+      BAN_THRESHOLD: 100, // 100 кликов
+      check() {
+        const banTime = CookieManager.getCookie('banTime');
+        if (banTime) {
+          const now = Date.now();
+          const timeLeft = this.BAN_DURATION - (now - parseInt(banTime));
+          if (timeLeft > 0) {
+            return {
+              isBanned: true,
+              minutesLeft: Math.ceil(timeLeft / 60000)
+            };
+          } else {
+            this.clear();
+            return { isBanned: false };
+          }
+        }
+        return { isBanned: false };
+      },
+      apply() {
+        CookieManager.setCookie('banTime', Date.now(), this.BAN_DURATION / 3600000);
+        CookieManager.setCookie('clickCount', '0', 1);
+        const button = document.getElementById('button');
+        button.disabled = true;
+        button.classList.add('disabled', 'bg-gray-600');
+        button.classList.remove('bg-red-600', 'hover:bg-red-700');
+        button.textContent = 'ТЫ ЗАБАНЕН!';
+        DialogManager.set('ТЫ МЕНЯ ДОСТАЛ ДЕРЖИ БАН!!');
+        DialogManager.element.classList.add('glitch');
+        SoundManager.stopAll();
+        SoundManager.play('ban');
+        const overlay = document.createElement('div');
+        overlay.className = 'glitch-overlay';
+        document.body.appendChild(overlay);
+        NotificationManager.show('ТЫ НАЖАЛ 100 РАЗ! БАН НА 60 МИНУТ!');
+        setTimeout(() => {
+          overlay.remove();
+          DialogManager.element.classList.remove('glitch');
+        }, 10000);
+      },
+      clear() {
+        CookieManager.deleteCookie('banTime');
+        CookieManager.deleteCookie('clickCount');
+        const button = document.getElementById('button');
+        button.disabled = false;
+        button.classList.remove('disabled', 'bg-gray-600');
+        button.classList.add('bg-red-600', 'hover:bg-red-700');
+        button.textContent = 'КРАСНАЯ КНОПКА';
+        DialogManager.update();
+      }
+    };
+
+    // Основная логика
+    const Game = {
+      clickCount: 0,
+      init() {
+        this.button = document.getElementById('button');
+        const banStatus = BanManager.check();
+        if (banStatus.isBanned) {
+          this.button.disabled = true;
+          this.button.classList.add('disabled', 'bg-gray-600');
+          this.button.classList.remove('bg-red-600', 'hover:bg-red-700');
+          this.button.textContent = 'ТЫ ЗАБАНЕН!';
+          DialogManager.set(`ТЫ МЕНЯ ДОСТАЛ ДЕРЖИ БАН!! Осталось ${banStatus.minutesLeft} минут.`);
+          SoundManager.play('ban');
+          const overlay = document.createElement('div');
+          overlay.className = 'glitch-overlay';
+          document.body.appendChild(overlay);
+          setTimeout(() => overlay.remove(), 10000);
+          setTimeout(() => BanManager.check(), banStatus.minutesLeft * 60000);
+        } else {
+          this.clickCount = parseInt(CookieManager.getCookie('clickCount') || '0');
+          DialogManager.update();
+          this.bindEvents();
+          this.startIdleDialog();
+        }
+      },
+      bindEvents() {
+        this.button.addEventListener('click', () => {
+          const banStatus = BanManager.check();
+          if (banStatus.isBanned) return;
+
+          this.clickCount++;
+          CookieManager.setCookie('clickCount', this.clickCount, 1);
+
+          if (this.clickCount >= BanManager.BAN_THRESHOLD) {
+            BanManager.apply();
+            return;
+          }
+
+          if (this.clickCount % 5 === 0) {
+            PrankManager.executeNextPrank();
+          } else if (this.clickCount % 5 === 4) {
+            PrankManager.setNextPrank();
+          } else {
+            DialogManager.update();
+          }
+
+          if (Math.random() < 0.3) {
+            const infoMessages = [
+              `Твой экран: ${window.screen.width}x${window.screen.height}!`,
+              `Ты используешь ${navigator.userAgent.includes('Chrome') ? 'Chrome' : 'не Chrome'}!`,
+              `Твой язык: ${navigator.language || 'Неизвестный'}!`,
+              `Твой часовой пояс: ${Intl.DateTimeFormat().resolvedOptions().timeZone}!`
+            ];
+            NotificationManager.show(infoMessages[Math.floor(Math.random() * infoMessages.length)]);
+          }
+        });
+
+        this.button.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || e.key === 'Space') {
+            e.preventDefault();
+            this.button.click();
+          }
+        });
+      },
+      startIdleDialog() {
+        setInterval(() => {
+          if (this.clickCount === 0 && Math.random() < 0.1 && !BanManager.check().isBanned) {
+            DialogManager.update();
+          }
+        }, 10000);
+      }
+    };
+
+    // Запуск игры
+    Game.init();
+  </script>
+</body>
+</html>

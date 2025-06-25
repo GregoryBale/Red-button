@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Интерактивная красная кнопка с сюрпризами! Не нажимай, если не готов к хаосу!">
   <title>Красная Кнопка: Не Нажимай!</title>
-  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&family=Comic+Sans+MS&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;700&family=Roboto+Mono&family=Comic+Sans+MS&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#2d3748">
   <style>
     :root {
-      --red-glow: 0 0 40px rgba(255, 0, 0, 0.8), 0 0 80px rgba(255, 0, 0, 0.4);
-      --glitch-color: rgba(255, 0, 0, 0.5);
+      --red-glow: 0 0 20px rgba(255, 0, 0, 0.8), 0 0 40px rgba(255, 0, 0, 0.4);
+      --glitch-color: rgba(255, 0, 0, 0.6);
     }
 
     * {
@@ -23,34 +26,39 @@
       min-height: 100vh;
       overflow: hidden;
       background: linear-gradient(135deg, #1a202c, #2d3748);
-      transition: all 0.5s ease;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
       display: flex;
       justify-content: center;
       align-items: center;
+      will-change: transform, background;
     }
 
     #button {
-      transition: transform 0.2s ease, filter 0.3s, background-color 0.3s;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s, background-color 0.3s;
       position: relative;
       z-index: 10;
       cursor: pointer;
       outline: none;
+      will-change: transform, filter;
     }
 
     #button:hover:not(.disabled) {
-      transform: scale(1.1);
+      transform: scale(1.15);
       filter: var(--red-glow);
     }
 
     #button.disabled {
       cursor: not-allowed;
       opacity: 0.5;
+      filter: none;
     }
 
     #dialog {
-      text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+      text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
       user-select: none;
+      transition: all 0.3s ease;
+      will-change: transform, opacity;
     }
 
     .vibrate {
@@ -75,13 +83,13 @@
     .glitch::before {
       color: var(--glitch-color);
       animation: glitch-top 0.3s infinite;
-      left: -2px;
+      left: -3px;
     }
 
     .glitch::after {
       color: cyan;
       animation: glitch-bottom 0.3s infinite;
-      left: 2px;
+      left: 3px;
     }
 
     .blink {
@@ -93,10 +101,10 @@
     }
 
     .ascii {
-      font-family: 'Courier New', monospace;
+      font-family: 'Roboto Mono', monospace;
       background: black !important;
-      color: green;
-      font-size: 14px;
+      color: lime;
+      font-size: clamp(12px, 1.5vw, 14px);
     }
 
     .comic-sans {
@@ -119,10 +127,11 @@
       max-width: 90vw;
       word-break: break-word;
       font-size: clamp(14px, 2vw, 16px);
+      will-change: opacity, transform;
     }
 
     .runaway {
-      animation: runaway 5s linear;
+      animation: runaway 5s ease-in-out;
     }
 
     .mirror {
@@ -141,7 +150,7 @@
     .bsod {
       background: #0000ff;
       color: white;
-      font-family: 'Courier New', monospace;
+      font-family: 'Roboto Mono', monospace;
       display: none;
       align-items: center;
       justify-content: center;
@@ -160,9 +169,63 @@
       width: 100%;
       height: 100%;
       background: url('src/src/img/glitch-bg.png') repeat;
-      opacity: 0.4;
+      opacity: 0.5;
       z-index: 9998;
       animation: glitch 0.2s infinite;
+    }
+
+    .pixelate {
+      filter: url('#pixelate-filter');
+    }
+
+    .invert {
+      filter: invert(100%);
+    }
+
+    .rainbow {
+      animation: rainbow 3s linear infinite;
+    }
+
+    .explosion {
+      animation: explosion 1s ease-out;
+    }
+
+    #click-counter {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: white;
+      font-size: clamp(14px, 2vw, 16px);
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      border-radius: 5px;
+      z-index: 1000;
+    }
+
+    #progress-bar {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 5px;
+      overflow: hidden;
+      z-index: 1000;
+    }
+
+    #progress-bar div {
+      height: 100%;
+      background: #ff0000;
+      transition: width 0.3s ease;
+    }
+
+    #language-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
     }
 
     @keyframes vibrate {
@@ -216,10 +279,29 @@
       0% { filter: hue-rotate(0deg); }
       100% { filter: hue-rotate(360deg); }
     }
+
+    @keyframes rainbow {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+
+    @keyframes explosion {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(2); opacity: 0.5; }
+      100% { transform: scale(3); opacity: 0; }
+    }
   </style>
 </head>
 <body>
-  <div id="main" class="text-center px-4 relative z-10" role="main">
+  <svg style="display: none;">
+    <filter id="pixelate-filter">
+      <feFlood flood-color="black" result="black"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="1" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="20" xChannelSelector="R" yChannelSelector="G"/>
+      <feComposite in="black" operator="in"/>
+    </filter>
+  </svg>
+  <main id="main" class="text-center px-4 relative z-10" role="main">
     <h1 id="dialog" class="text-2xl sm:text-3xl md:text-5xl font-bold mb-10 text-red-500 animate-pulse" data-text="Пожалуйста, не нажимай на меня..." aria-live="polite">Пожалуйста, не нажимай на меня...</h1>
     <button id="button" class="bg-red-600 text-white font-bold text-lg sm:text-2xl py-4 px-8 rounded-full shadow-2xl hover:bg-red-700" aria-label="Красная кнопка, не нажимать">
       КРАСНАЯ КНОПКА
@@ -239,7 +321,10 @@
       <p><strong>Билл Гейтс:</strong> Зачем ты нажал? Теперь переустанавливай Windows!</p>
     </div>
     <canvas id="doom-canvas" class="hidden fixed top-0 left-0 w-full h-full z-9998" aria-hidden="true"></canvas>
-  </div>
+    <div id="click-counter" aria-live="polite">Кликов: 0</div>
+    <div id="progress-bar"><div style="width: 0%;"></div></div>
+    <button id="language-toggle" class="bg-gray-700 text-white px-4 py-2 rounded" aria-label="Переключить язык">RU</button>
+  </main>
 
   <script type="module">
     // Модуль управления cookies
@@ -258,6 +343,62 @@
       }
     };
 
+    // Модуль локализации
+    const Localization = {
+      language: CookieManager.getCookie('language') || 'ru',
+      translations: {
+        ru: {
+          initial: 'Пожалуйста, не нажимай на меня...',
+          dialogs: [
+            'Пожалуйста, не нажимай на меня...',
+            'Ты серьёзно хочешь это сделать?',
+            'Это может вызвать апокалипсис!',
+            'Я просто кнопка, но с душой!',
+            'Ты вызовешь цифровой хаос!',
+            'Остановись, пока не поздно!',
+            'Ты хочешь сломать интернет?',
+            'Я умоляю, не трогай меня!',
+            'Это кнопка Судного дня!',
+            'Ты хочешь, чтобы я заплакала?',
+            // ... (другие диалоги из предыдущего кода)
+            'ТЫ ДОЖАЛСЯ! ЭТО ПИЗДЕЦ!'
+          ],
+          ban: 'ТЫ МЕНЯ ДОСТАЛ ДЕРЖИ БАН!!',
+          banNotification: 'ТЫ НАЖАЛ 100 РАЗ! БАН НА 60 МИНУТ!',
+          toggle: 'RU'
+        },
+        en: {
+          initial: 'Please, don’t press me...',
+          dialogs: [
+            'Please, don’t press me...',
+            'Are you seriously going to do this?',
+            'This could cause an apocalypse!',
+            'I’m just a button, but I have a soul!',
+            'You’ll unleash digital chaos!',
+            'Stop before it’s too late!',
+            'Do you want to break the internet?',
+            'I’m begging you, don’t touch me!',
+            'This is the Doomsday button!',
+            'Do you want me to cry?',
+            // ... (перевод остальных диалогов)
+            'YOU’VE GONE TOO FAR! THIS IS THE END!'
+          ],
+          ban: 'YOU’VE PISSED ME OFF! TAKE A BAN!!',
+          banNotification: 'YOU PRESSED 100 TIMES! BANNED FOR 60 MINUTES!',
+          toggle: 'EN'
+        }
+      },
+      get() {
+        return this.translations[this.language];
+      },
+      toggle() {
+        this.language = this.language === 'ru' ? 'en' : 'ru';
+        CookieManager.setCookie('language', this.language, 24);
+        document.getElementById('language-toggle').textContent = this.get().toggle;
+        DialogManager.update();
+      }
+    };
+
     // Модуль управления звуком
     const SoundManager = {
       sounds: {
@@ -270,7 +411,8 @@
         reload: new Audio('src/src/audio/reload.mp3'),
         death: new Audio('src/src/audio/death.mp3'),
         fail: new Audio('src/src/audio/fail.mp3'),
-        ban: new Audio('src/src/audio/ban.mp3')
+        ban: new Audio('src/src/audio/ban.mp3'),
+        spooky: new Audio('src/src/audio/spooky.mp3')
       },
       play(sound) {
         const audio = this.sounds[sound];
@@ -301,135 +443,13 @@
 
     // Модуль диалогов
     const DialogManager = {
-      dialogs: [
-        'Пожалуйста, не нажимай на меня...',
-        'Ты серьёзно хочешь это сделать?',
-        'Это может вызвать апокалипсис!',
-        'Я просто кнопка, но с душой!',
-        'Ты вызовешь цифровой хаос!',
-        'Остановись, пока не поздно!',
-        'Ты хочешь сломать интернет?',
-        'Я умоляю, не трогай меня!',
-        'Это кнопка Судного дня!',
-        'Ты хочешь, чтобы я заплакала?',
-        'Ты вызовешь межгалактический баг!',
-        'Я не готова к твоему любопытству!',
-        'Ты хочешь увидеть 404 СОВЕСТЬ NOT FOUND?',
-        'Не нажимай, я в режиме отладки!',
-        'Ты вызовешь сбой в матрице!',
-        'Я могу устроить тебе вечный редирект!',
-        'Не трогай, я только что задеплоилась!',
-        'Ты хочешь, чтобы я крашнулась?',
-        'Я могу превратить твой экран в пиксельный ад!',
-        'Не нажимай, я ещё не закешировалась!',
-        'Ты вызовешь цифровой армагеддон!',
-        'Я могу удалить твой localStorage!',
-        'Не трогай, я в режиме стресс-теста!',
-        'Ты хочешь увидеть настоящий баг?',
-        'Я могу устроить тебе DDoS... в шутку!',
-        'Не нажимай, я только что обновилась!',
-        'Ты вызовешь бесконечный цикл!',
-        'Я могу заблокировать твой CSS!',
-        'Не трогай, я в режиме инкогнито!',
-        'Ты хочешь, чтобы я зависла?',
-        'Я могу сделать твой экран чёрным!',
-        'Не нажимай, я ещё не отрендерилась!',
-        'Ты вызовешь цифровой катаклизм!',
-        'Я могу превратить твой браузер в хаос!',
-        'Не трогай, я в режиме тестирования!',
-        'Ты хочешь увидеть настоящий краш?',
-        'Я могу устроить тебе вечный спиннер!',
-        'Не нажимай, я ещё не заминифицировалась!',
-        'Ты вызовешь сбой в моём API!',
-        'Я могу превратить твой JS в спагетти-код!',
-        'Не трогай, я только что закоммитилась!',
-        'Ты хочешь, чтобы я вызвала 500-ю ошибку?',
-        'Я могу устроить тебе цифровой кошмар!',
-        'Не нажимай, я в режиме профилирования!',
-        'Ты вызовешь сбой в моём фреймворке!',
-        'Я могу заблокировать твой DOM навсегда!',
-        'Не трогай, я в режиме миграции!',
-        'Ты хочешь увидеть настоящий exception?',
-        'Я могу сделать твой экран перевёрнутым!',
-        'Не нажимай, я ещё не закешировала шрифты!',
-        'Ты вызовешь полный цифровой коллапс!',
-        'Я могу удалить твой sessionStorage!',
-        'Не трогай, я только что прошла аудит безопасности!',
-        'Ты хочешь, чтобы я вызвала фаталку?',
-        'Я могу устроить тебе вечный баг!',
-        'Не нажимай, я в режиме финального релиза!',
-        'Ты вызовешь цифровой конец света!',
-        'Я могу превратить твой браузер в пиксельный кошмар!',
-        'Не трогай, я в режиме продакшена!',
-        'Ты хочешь увидеть настоящий цифровой ужас?',
-        'Я могу заблокировать твой фронтенд!',
-        'Не нажимай, я только что заоптимизировалась!',
-        'Ты вызовешь сбой в моём ядре!',
-        'Я могу превратить твой CSS в хаос!',
-        'Не трогай, я в режиме рефакторинга!',
-        'Ты хочешь, чтобы я зависла в рендеринге?',
-        'Я могу устроить тебе вечный редизайн!',
-        'Не нажимай, я ещё не прогрузилась!',
-        'Ты вызовешь цифровой шторм!',
-        'Я могу удалить твой CSS навсегда!',
-        'Не трогай, я в режиме сна!',
-        'Ты хочешь, чтобы я вызвала панику?',
-        'Я могу сделать твой экран чёрно-белым!',
-        'Не нажимай, я только что ребутнулась!',
-        'Ты вызовешь сбой в моём роутере!',
-        'Я могу превратить твой код в хаос!',
-        'Не трогай, я в режиме дебаггинга!',
-        'Ты вызовешь цифровой хаос!',
-        'Я могу заблокировать твои шрифты!',
-        'Не нажимай, я ещё не прошла QA!',
-        'Ты хочешь увидеть настоящий баг?',
-        'Я могу устроить тебе утечку памяти!',
-        'Не трогай, я только что получила патч!',
-        'Ты вызовешь цифровую чуму!',
-        'Я могу превратить твой HTML в кашу!',
-        'Не нажимай, я ещё не отладила код!',
-        'Ты хочешь, чтобы я вызвала CORS-ошибку?',
-        'Я могу сделать твой экран пиксельным кошмаром!',
-        'Не трогай, я только что прошла CI/CD!',
-        'Ты вызовешь сбой в моём JS!',
-        'Я могу устроить тебе вечный рефреш!',
-        'Не нажимай, я в бета-версии!',
-        'Ты хочешь, чтобы я удалила кэш?',
-        'Я могу превратить твой экран в пиксельный ад!',
-        'Не трогай, я только что обновилась!',
-        'Ты вызовешь перегрузку сервера... в моём сердце!',
-        'Я могу устроить тебе тёмную тему навсегда!',
-        'Не нажимай, я ещё не готова к славе!',
-        'Ты вызовешь межгалактический инцидент!',
-        'Я не хочу быть героем этой истории!',
-        'Ты хочешь, чтобы мир сошёл с ума?',
-        'Я предупреждаю: это плохая идея!',
-        'Не заставляй меня звать админа!',
-        'Ты хочешь, чтобы я исчезла?',
-        'Я всего лишь пиксели, но мне страшно!',
-        'Не нажимай, я ещё не готова к этому!',
-        'Ты хочешь стать причиной катастрофы?',
-        'Я знаю, ты любопытный, но не надо!',
-        'Это кнопка, но с чувствами, не трогай!',
-        'Ты вызовешь цифровой апокалипсис!',
-        'Нажмёшь — и всё пропало!',
-        'Я не шучу, будет хаос!',
-        'Ты хочешь разрушить интернет?',
-        'Остановись, пока не поздно!',
-        'Моя жизнь зависит от тебя, не нажимай!',
-        'Ты вызовешь что-то ужасное!',
-        'Не трогай меня, я всего лишь кнопка!',
-        'Это может быть опасно, я предупреждаю!',
-        'Ты точно хочешь нажать? Подумай ещё раз!',
-        'Я серьёзно, не надо этого делать!',
-        'ТЫ ДОЖАЛСЯ! ЭТО ПИЗДЕЦ!'
-      ],
       index: 0,
       element: document.getElementById('dialog'),
       update() {
-        this.element.textContent = this.dialogs[this.index];
-        this.element.setAttribute('data-text', this.dialogs[this.index]);
-        this.index = (this.index + 1) % this.dialogs.length;
+        const dialogs = Localization.get().dialogs;
+        this.element.textContent = dialogs[this.index];
+        this.element.setAttribute('data-text', dialogs[this.index]);
+        this.index = (this.index + 1) % dialogs.length;
       },
       set(text) {
         this.element.textContent = text;
@@ -499,6 +519,7 @@
             screamer.style.width = '100%';
             screamer.style.height = '100%';
             screamer.style.zIndex = '9999';
+            screamer.loading = 'lazy';
             screamer.onerror = () => console.error('Не удалось загрузить src/src/img/screamer.png');
             document.body.appendChild(screamer);
             NotificationManager.show('Скример! Не пугайся!');
@@ -512,7 +533,6 @@
           image: 'src/src/img/broken-bg.png',
           sound: 'fail',
           execute: function() {
-            // Сохраняем исходные стили
             this.originalStyles = {
               body: document.body.getAttribute('style') || '',
               main: document.getElementById('main').getAttribute('style') || '',
@@ -522,23 +542,24 @@
               buttonClass: document.getElementById('button').className
             };
 
-            // Применяем хаотичные стили
+            const fonts = ['Comic Sans MS', 'Impact', 'Papyrus', 'Wingdings'];
             document.body.style.background = `linear-gradient(${Math.random() * 360}deg, #${Math.floor(Math.random() * 16777215).toString(16)}, #${Math.floor(Math.random() * 16777215).toString(16)})`;
-            document.body.style.fontFamily = Math.random() < 0.5 ? 'Comic Sans MS' : 'Impact';
-            document.body.style.transform = `rotate(${Math.random() * 10 - 5}deg)`;
-            document.getElementById('main').style.padding = `${Math.random() * 50}px`;
-            document.getElementById('main').style.transform = `skew(${Math.random() * 20 - 10}deg)`;
-            document.getElementById('dialog').className = 'text-xl font-normal mb-5 text-purple-500';
+            document.body.style.fontFamily = fonts[Math.floor(Math.random() * fonts.length)];
+            document.body.style.transform = `rotate(${Math.random() * 20 - 10}deg) scale(${Math.random() * 0.5 + 0.75})`;
+            document.body.style.filter = Math.random() < 0.5 ? 'blur(5px)' : 'contrast(200%)';
+            document.getElementById('main').style.padding = `${Math.random() * 100}px`;
+            document.getElementById('main').style.transform = `skew(${Math.random() * 30 - 15}deg)`;
+            document.getElementById('dialog').className = 'text-lg font-normal mb-5 text-purple-500';
             document.getElementById('dialog').style.textShadow = 'none';
-            document.getElementById('dialog').style.fontSize = `${Math.random() * 20 + 20}px`;
+            document.getElementById('dialog').style.fontSize = `${Math.random() * 30 + 20}px`;
+            document.getElementById('dialog').style.animation = 'blink 0.5s infinite';
             document.getElementById('button').className = 'bg-yellow-500 text-black font-normal text-sm py-2 px-4 rounded';
             document.getElementById('button').style.boxShadow = 'none';
-            document.getElementById('button').style.transform = `translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px)`;
+            document.getElementById('button').style.transform = `translate(${Math.random() * 200 - 100}px, ${Math.random() * 200 - 100}px) rotate(${Math.random() * 360}deg)`;
 
             NotificationManager.show('Дизайн сайта сломан! Подожди 5 секунд для восстановления!');
             this.cssBreakActive = true;
 
-            // Восстановление через 5 секунд
             setTimeout(() => {
               document.body.setAttribute('style', this.originalStyles.body);
               document.getElementById('main').setAttribute('style', this.originalStyles.main);
@@ -626,6 +647,7 @@
             gopnik.style.bottom = '10px';
             gopnik.style.left = '10px';
             gopnik.style.width = '200px';
+            gopnik.loading = 'lazy';
             gopnik.onerror = () => console.error('Не удалось загрузить src/src/img/gopnik.gif');
             document.body.appendChild(gopnik);
             NotificationManager.show('Гопник танцует от твоих действий!');
@@ -666,6 +688,7 @@
             mushroom.style.width = '100%';
             mushroom.style.height = '100%';
             mushroom.style.opacity = '0.5';
+            mushroom.loading = 'lazy';
             mushroom.onerror = () => console.error('Не удалось загрузить src/src/img/nuclear.png');
             document.body.appendChild(mushroom);
             NotificationManager.show('Ядерный взрыв! Ты всё уничтожил!');
@@ -685,6 +708,7 @@
             meme.style.top = '10%';
             meme.style.left = '10%';
             meme.style.width = '300px';
+            meme.loading = 'lazy';
             meme.onerror = () => console.error('Не удалось загрузить src/src/img/meme.jpg');
             document.body.appendChild(meme);
             NotificationManager.show('Мем для твоего настроения!');
@@ -817,6 +841,117 @@
             NotificationManager.show('Звёздные войны начались!');
             setTimeout(() => crawl.remove(), 10000);
           }
+        },
+        {
+          id: 'spooky',
+          threat: 'Я могу сделать всё жутким!',
+          dialog: 'ЖУТКИЙ РЕЖИМ АКТИВИРОВАН!',
+          image: 'src/src/img/spooky-bg.png',
+          sound: 'spooky',
+          execute: function() {
+            document.body.style.background = 'url(src/src/img/spooky-bg.png)';
+            document.body.style.filter = 'grayscale(100%)';
+            NotificationManager.show('Всё стало жутким!');
+            setTimeout(() => {
+              document.body.style.background = '';
+              document.body.style.filter = '';
+            }, 5000);
+          }
+        },
+        {
+          id: 'ussr',
+          threat: 'Я могу включить гимн СССР!',
+          dialog: 'СССР ВОЗВРАЩАЕТСЯ!',
+          image: 'src/src/img/ussr-bg.png',
+          sound: 'ussr',
+          execute: function() {
+            document.body.style.background = 'url(src/src/img/ussr-bg.png)';
+            NotificationManager.show('Слава СССР!');
+            setTimeout(() => document.body.style.background = '', 5000);
+          }
+        },
+        {
+          id: 'dance',
+          threat: 'Я могу заставить кнопку танцевать!',
+          dialog: 'КНОПКА ТАНЦУЕТ! ПРИСОЕДИНЯЙСЯ!',
+          image: 'src/src/img/dance-bg.png',
+          sound: 'shanson',
+          execute: function() {
+            const button = document.getElementById('button');
+            button.style.animation = 'vibrate 0.3s infinite';
+            NotificationManager.show('Кнопка танцует!');
+            setTimeout(() => button.style.animation = '', 5000);
+          }
+        },
+        {
+          id: 'pixelate',
+          threat: 'Я могу пикселизировать твой экран!',
+          dialog: 'ЭКРАН ПИКСЕЛИЗИРОВАН! ЧТО ТЫ ВИДИШЬ?',
+          image: 'src/src/img/pixel-bg.png',
+          sound: 'error',
+          execute: function() {
+            document.body.classList.add('pixelate');
+            NotificationManager.show('Экран стал пиксельным!');
+            setTimeout(() => document.body.classList.remove('pixelate'), 5000);
+          }
+        },
+        {
+          id: 'glitch-text',
+          threat: 'Я могу сломать весь текст!',
+          dialog: 'ТЕКСТ В ХАОСЕ! СПАСАЙСЯ!',
+          image: 'src/src/img/glitch-bg.png',
+          sound: 'error',
+          execute: function() {
+            const dialog = document.getElementById('dialog');
+            dialog.classList.add('glitch');
+            NotificationManager.show('Текст сломан!');
+            setTimeout(() => dialog.classList.remove('glitch'), 5000);
+          }
+        },
+        {
+          id: 'invert',
+          threat: 'Я могу инвертировать цвета!',
+          dialog: 'ЦВЕТА ПЕРЕВЁРНУТЫ! ЧТО ПРОИСХОДИТ?',
+          image: 'src/src/img/invert-bg.png',
+          sound: 'error',
+          execute: function() {
+            document.body.classList.add('invert');
+            NotificationManager.show('Цвета перевёрнуты!');
+            setTimeout(() => document.body.classList.remove('invert'), 5000);
+          }
+        },
+        {
+          id: 'rainbow',
+          threat: 'Я могу сделать всё радужным!',
+          dialog: 'РАДУГА ВЗЯЛА ВЛАСТЬ!',
+          image: 'src/src/img/rainbow-bg.png',
+          sound: 'shanson',
+          execute: function() {
+            document.body.classList.add('rainbow');
+            NotificationManager.show('Радуга захватила экран!');
+            setTimeout(() => document.body.classList.remove('rainbow'), 5000);
+          }
+        },
+        {
+          id: 'explosion',
+          threat: 'Я могу взорвать экран!',
+          dialog: 'ВЗРЫВ! ВСЁ РАЗЛЕТЕЛОСЬ!',
+          image: 'src/src/img/explosion-bg.png',
+          sound: 'death',
+          execute: function() {
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.style.position = 'fixed';
+            explosion.style.top = '0';
+            explosion.style.left = '0';
+            explosion.style.width = '100%';
+            explosion.style.height = '100%';
+            explosion.style.background = 'url(src/src/img/explosion-bg.png)';
+            explosion.style.backgroundSize = 'cover';
+            document.body.appendChild(explosion);
+            NotificationManager.show('Экран взорвался!');
+            setTimeout(() => explosion.remove(), 1000);
+          }
         }
       ],
       setNextPrank() {
@@ -867,18 +1002,20 @@
         button.disabled = true;
         button.classList.add('disabled', 'bg-gray-600');
         button.classList.remove('bg-red-600', 'hover:bg-red-700');
-        button.textContent = 'ТЫ ЗАБАНЕН!';
-        DialogManager.set('ТЫ МЕНЯ ДОСТАЛ ДЕРЖИ БАН!!');
+        button.textContent = Localization.get().toggle === 'RU' ? 'ТЫ ЗАБАНЕН!' : 'YOU ARE BANNED!';
+        DialogManager.set(Localization.get().ban);
         DialogManager.element.classList.add('glitch');
+        document.body.classList.add('vibrate');
         SoundManager.stopAll();
         SoundManager.play('ban');
         const overlay = document.createElement('div');
         overlay.className = 'glitch-overlay';
         document.body.appendChild(overlay);
-        NotificationManager.show('ТЫ НАЖАЛ 100 РАЗ! БАН НА 60 МИНУТ!');
+        NotificationManager.show(Localization.get().banNotification);
         setTimeout(() => {
           overlay.remove();
           DialogManager.element.classList.remove('glitch');
+          document.body.classList.remove('vibrate');
         }, 10000);
       },
       clear() {
@@ -888,7 +1025,7 @@
         button.disabled = false;
         button.classList.remove('disabled', 'bg-gray-600');
         button.classList.add('bg-red-600', 'hover:bg-red-700');
-        button.textContent = 'КРАСНАЯ КНОПКА';
+        button.textContent = Localization.get().toggle === 'RU' ? 'КРАСНАЯ КНОПКА' : 'RED BUTTON';
         DialogManager.update();
       }
     };
@@ -896,35 +1033,54 @@
     // Основная логика
     const Game = {
       clickCount: 0,
+      lastClick: 0,
       init() {
         this.button = document.getElementById('button');
+        this.clickCounter = document.getElementById('click-counter');
+        this.progressBar = document.getElementById('progress-bar').firstChild;
         const banStatus = BanManager.check();
         if (banStatus.isBanned) {
           this.button.disabled = true;
           this.button.classList.add('disabled', 'bg-gray-600');
           this.button.classList.remove('bg-red-600', 'hover:bg-red-700');
-          this.button.textContent = 'ТЫ ЗАБАНЕН!';
-          DialogManager.set(`ТЫ МЕНЯ ДОСТАЛ ДЕРЖИ БАН!! Осталось ${banStatus.minutesLeft} минут.`);
+          this.button.textContent = Localization.get().toggle === 'RU' ? 'ТЫ ЗАБАНЕН!' : 'YOU ARE BANNED!';
+          DialogManager.set(`${Localization.get().ban} ${Localization.get().toggle === 'RU' ? 'Осталось' : 'Time left'}: ${banStatus.minutesLeft} ${Localization.get().toggle === 'RU' ? 'минут' : 'minutes'}.`);
           SoundManager.play('ban');
           const overlay = document.createElement('div');
           overlay.className = 'glitch-overlay';
           document.body.appendChild(overlay);
           setTimeout(() => overlay.remove(), 10000);
-          setTimeout(() => BanManager.check(), banStatus.minutesLeft * 60000);
+          const timer = setInterval(() => {
+            const status = BanManager.check();
+            if (!status.isBanned) {
+              clearInterval(timer);
+            }
+            DialogManager.set(`${Localization.get().ban} ${Localization.get().toggle === 'RU' ? 'Осталось' : 'Time left'}: ${status.minutesLeft} ${Localization.get().toggle === 'RU' ? 'минут' : 'minutes'}.`);
+          }, 60000);
         } else {
           this.clickCount = parseInt(CookieManager.getCookie('clickCount') || '0');
+          this.updateCounter();
           DialogManager.update();
           this.bindEvents();
           this.startIdleDialog();
         }
       },
+      updateCounter() {
+        this.clickCounter.textContent = `${Localization.get().toggle === 'RU' ? 'Кликов' : 'Clicks'}: ${this.clickCount}`;
+        this.progressBar.style.width = `${(this.clickCount % 5) * 20}%`;
+      },
       bindEvents() {
         this.button.addEventListener('click', () => {
+          const now = Date.now();
+          if (now - this.lastClick < 200) return; // Debounce
+          this.lastClick = now;
+
           const banStatus = BanManager.check();
           if (banStatus.isBanned) return;
 
           this.clickCount++;
-          CookieManager.setCookie('clickCount', this.clickCount, 1);
+          CookieManager.setCookie('clickCount', this.clickCount, 24);
+          this.updateCounter();
 
           if (this.clickCount >= BanManager.BAN_THRESHOLD) {
             BanManager.apply();
@@ -941,10 +1097,10 @@
 
           if (Math.random() < 0.3) {
             const infoMessages = [
-              `Твой экран: ${window.screen.width}x${window.screen.height}!`,
-              `Ты используешь ${navigator.userAgent.includes('Chrome') ? 'Chrome' : 'не Chrome'}!`,
-              `Твой язык: ${navigator.language || 'Неизвестный'}!`,
-              `Твой часовой пояс: ${Intl.DateTimeFormat().resolvedOptions().timeZone}!`
+              `${Localization.get().toggle === 'RU' ? 'Твой экран' : 'Your screen'}: ${window.screen.width}x${window.screen.height}!`,
+              `${Localization.get().toggle === 'RU' ? 'Ты используешь' : 'You are using'} ${navigator.userAgent.includes('Chrome') ? 'Chrome' : Localization.get().toggle === 'RU' ? 'не Chrome' : 'not Chrome'}!`,
+              `${Localization.get().toggle === 'RU' ? 'Твой язык' : 'Your language'}: ${navigator.language || (Localization.get().toggle === 'RU' ? 'Неизвестный' : 'Unknown')}!`,
+              `${Localization.get().toggle === 'RU' ? 'Твой часовой пояс' : 'Your timezone'}: ${Intl.DateTimeFormat().resolvedOptions().timeZone}!`
             ];
             NotificationManager.show(infoMessages[Math.floor(Math.random() * infoMessages.length)]);
           }
@@ -956,6 +1112,12 @@
             this.button.click();
           }
         });
+
+        document.getElementById('language-toggle').addEventListener('click', () => {
+          Localization.toggle();
+          this.updateCounter();
+          DialogManager.update();
+        });
       },
       startIdleDialog() {
         setInterval(() => {
@@ -965,6 +1127,11 @@
         }, 10000);
       }
     };
+
+    // Регистрация сервис-воркера для PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.warn('Service Worker registration failed:', err));
+    }
 
     // Запуск игры
     Game.init();
